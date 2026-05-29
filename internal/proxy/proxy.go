@@ -41,17 +41,21 @@ func NewReverseProxy(upstreamURLs []string) (*ReverseProxy, error) {
 
 func (p *ReverseProxy) Handler() http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		upstream := p.nextUpstream()
+		upstream := p.NextUpstream()
 		proxy := httputil.NewSingleHostReverseProxy(upstream)
 		proxy.ServeHTTP(w, r)
 	})
 }
 
+// NextUpstream returns the next upstream URL using round-robin selection.
+// Uses atomic load-then-CAS to ensure the first request starts at index 0.
 func (p *ReverseProxy) NextUpstream() *url.URL {
-	return p.nextUpstream()
-}
-
-func (p *ReverseProxy) nextUpstream() *url.URL {
-	index := atomic.AddUint64(&p.counter, 1)
-	return p.upstreams[index%uint64(len(p.upstreams))]
+	n := uint64(len(p.upstreams))
+	for {
+		current := atomic.LoadUint64(&p.counter)
+		next := current + 1
+		if atomic.CompareAndSwapUint64(&p.counter, current, next) {
+			return p.upstreams[current%n]
+		}
+	}
 }

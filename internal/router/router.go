@@ -2,14 +2,15 @@ package router
 
 import (
 	"errors"
-	"net/http"
 )
 
+// TenantConfig maps a tenant ID to its upstream URLs.
 type TenantConfig struct {
 	TenantID  string
 	Upstreams []string
 }
 
+// Router holds the tenant → upstream routing table.
 type Router struct {
 	tenants map[string]TenantConfig
 }
@@ -33,6 +34,7 @@ func NewRouter(tenants []TenantConfig) (*Router, error) {
 	return &Router{tenants: mapped}, nil
 }
 
+// UpstreamsForTenant returns the upstream URLs configured for the given tenant.
 func (r *Router) UpstreamsForTenant(tenantID string) ([]string, error) {
 	if tenantID == "" {
 		return nil, errors.New("tenant id is empty")
@@ -44,18 +46,6 @@ func (r *Router) UpstreamsForTenant(tenantID string) ([]string, error) {
 	}
 
 	return tenant.Upstreams, nil
-}
-
-func (r *Router) Middleware(next http.Handler) http.Handler {
-	return http.HandlerFunc(func(w http.ResponseWriter, req *http.Request) {
-		tenantID := req.Context().Value(ContextTenantIDKey{})
-		if tenantID == nil {
-			http.Error(w, "tenant not resolved", http.StatusUnauthorized)
-			return
-		}
-
-		next.ServeHTTP(w, req)
-	})
 }
 
 // ContextTenantIDKey is a typed key for context values.

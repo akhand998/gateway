@@ -2,11 +2,38 @@ package observability
 
 import (
 	"net/http"
+	"regexp"
 	"strconv"
 
 	"github.com/prometheus/client_golang/prometheus"
 	"github.com/prometheus/client_golang/prometheus/promhttp"
 )
+
+// numericSegment matches path segments that look like IDs (numeric, UUIDs, hex strings).
+var numericSegment = regexp.MustCompile(`/[0-9a-fA-F-]{4,}`)
+
+// NormalizePath reduces high-cardinality URL paths to a bounded set of labels.
+// e.g. "/api/users/12345/orders" → "/api/users/:id/orders"
+// This prevents unbounded Prometheus time series from attacker-generated paths.
+func NormalizePath(path string) string {
+	if path == "" {
+		return "/"
+	}
+	// Replace numeric/UUID-like segments with :id
+	normalized := numericSegment.ReplaceAllString(path, "/:id")
+
+	// Cap path depth to prevent very long paths from creating unique series
+	segments := 0
+	for i, ch := range normalized {
+		if ch == '/' {
+			segments++
+		}
+		if segments > 5 {
+			return normalized[:i] + "/..."
+		}
+	}
+	return normalized
+}
 
 type Metrics struct {
 	requestsTotal   *prometheus.CounterVec
@@ -62,7 +89,7 @@ func (m *Metrics) Handler() http.Handler {
 
 func (m *Metrics) ObserveRequest(tenant, route string, statusCode int) {
 	code := strconv.Itoa(statusCode)
-	m.requestsTotal.WithLabelValues(tenant, route, code).Inc()
+	m.requestsTotal.WithLabelValues(tenant, NormalizePath(route), code).Inc()
 }
 
 func (m *Metrics) IncRateLimit(tenant string) {
