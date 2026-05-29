@@ -47,6 +47,10 @@ func (p *ReverseProxy) Handler() http.Handler {
 	})
 }
 
+func (p *ReverseProxy) NextUpstream() *url.URL {
+	return p.nextUpstream()
+}
+
 func (p *ReverseProxy) nextUpstream() *url.URL {
 	index := atomic.AddUint64(&p.counter, 1)
 	return p.upstreams[index%uint64(len(p.upstreams))]

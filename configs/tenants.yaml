@@ -1,0 +1,19 @@
+tenants:
+  - id: tenant-a
+    upstreams:
+      - http://localhost:9001
+    rate_per_second: 5
+    burst: 10
+    api_keys:
+      - api-key-a
+    breaker_max_failures: 2
+    breaker_open_seconds: 5
+  - id: tenant-b
+    upstreams:
+      - http://localhost:9002
+    rate_per_second: 5
+    burst: 10
+    api_keys:
+      - api-key-b
+    breaker_max_failures: 2
+    breaker_open_seconds: 5

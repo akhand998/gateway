@@ -194,6 +194,51 @@ for i in {1..30}; do curl -s -o /dev/null -w "%{http_code}\n" -H "X-API-Key: api
 
 ---
 
+## Phase 4 Quickstart (Circuit Breaker + Metrics)
+
+Run gateway with breaker settings and Prometheus metrics enabled:
+
+```bash
+go run ./cmd/gateway \
+    --addr :8080 \
+    --tenant-a-upstreams http://localhost:9001 \
+    --tenant-b-upstreams http://localhost:9002 \
+    --api-keys api-key-a=tenant-a,api-key-b=tenant-b \
+    --jwt-secret dev-secret \
+    --redis-addr localhost:6379 \
+    --tenant-a-rate 5 --tenant-a-burst 10 \
+    --tenant-b-rate 5 --tenant-b-burst 10 \
+    --breaker-max-failures 3 \
+    --breaker-open-seconds 5
+```
+
+Metrics are available at:
+
+```bash
+curl http://localhost:8080/metrics
+```
+
+---
+
+## Phase 5 Quickstart (Hot Config Reload)
+
+The gateway now reads tenants from `configs/tenants.yaml` and reloads changes without restart.
+
+Run gateway with config polling:
+
+```bash
+go run ./cmd/gateway \
+    --addr :8080 \
+    --jwt-secret dev-secret \
+    --redis-addr localhost:6379 \
+    --config configs/tenants.yaml \
+    --config-poll 2s
+```
+
+Edit `configs/tenants.yaml` (e.g., change `rate_per_second`), save, and the new limits take effect within a few seconds.
+
+---
+
 ## Build Plan (6 Weeks)
 
 ### Phase 1 — Dumb Proxy (Week 1)
