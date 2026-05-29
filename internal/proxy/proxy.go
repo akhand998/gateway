@@ -47,8 +47,6 @@ func (p *ReverseProxy) Handler() http.Handler {
 	})
 }
 
-// NextUpstream returns the next upstream URL using round-robin selection.
-// Uses atomic load-then-CAS to ensure the first request starts at index 0.
 func (p *ReverseProxy) NextUpstream() *url.URL {
 	n := uint64(len(p.upstreams))
 	for {

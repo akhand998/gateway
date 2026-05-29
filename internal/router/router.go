@@ -4,13 +4,11 @@ import (
 	"errors"
 )
 
-// TenantConfig maps a tenant ID to its upstream URLs.
 type TenantConfig struct {
 	TenantID  string
 	Upstreams []string
 }
 
-// Router holds the tenant → upstream routing table.
 type Router struct {
 	tenants map[string]TenantConfig
 }
@@ -34,7 +32,6 @@ func NewRouter(tenants []TenantConfig) (*Router, error) {
 	return &Router{tenants: mapped}, nil
 }
 
-// UpstreamsForTenant returns the upstream URLs configured for the given tenant.
 func (r *Router) UpstreamsForTenant(tenantID string) ([]string, error) {
 	if tenantID == "" {
 		return nil, errors.New("tenant id is empty")
@@ -48,5 +45,4 @@ func (r *Router) UpstreamsForTenant(tenantID string) ([]string, error) {
 	return tenant.Upstreams, nil
 }
 
-// ContextTenantIDKey is a typed key for context values.
 type ContextTenantIDKey struct{}

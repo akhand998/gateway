@@ -75,7 +75,7 @@ func TestResolveTenantID_ExpiredJWT(t *testing.T) {
 	secret := []byte("secret")
 	token := jwt.NewWithClaims(jwt.SigningMethodHS256, jwt.MapClaims{
 		"tenant_id": "tenant-a",
-		"exp":       time.Now().Add(-time.Hour).Unix(), // expired 1 hour ago
+		"exp":       time.Now().Add(-time.Hour).Unix(),
 		"iat":       time.Now().Add(-2 * time.Hour).Unix(),
 	})
 	signed, err := token.SignedString(secret)
@@ -94,10 +94,9 @@ func TestResolveTenantID_ExpiredJWT(t *testing.T) {
 }
 
 func TestResolveTenantID_WrongSigningMethod(t *testing.T) {
-	// Create a token with a different signing method (none)
+
 	resolver := NewResolver("secret", map[string]string{})
 
-	// Craft a JWT signed with a different secret
 	wrongSecret := []byte("wrong-secret")
 	token := jwt.NewWithClaims(jwt.SigningMethodHS256, jwt.MapClaims{
 		"tenant_id": "tenant-a",

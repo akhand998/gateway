@@ -44,14 +44,12 @@ func TestWatcher_ReloadsOnFileChange(t *testing.T) {
 		})
 	}()
 
-	// Drain the initial reload callback that fires on Start.
 	select {
 	case <-reloadCh:
 	case <-time.After(2 * time.Second):
 		t.Fatal("timed out waiting for initial reload")
 	}
 
-	// Small delay to ensure the watcher has settled before we modify the file.
 	time.Sleep(200 * time.Millisecond)
 
 	updated := `tenants:
@@ -111,7 +109,6 @@ func TestWatcher_InvalidYAMLDoesNotCorruptStore(t *testing.T) {
 		_ = watcher.Start(ctx, store, nil)
 	}()
 
-	// Wait for initial load then write invalid YAML.
 	time.Sleep(200 * time.Millisecond)
 
 	invalidYAML := `this is not valid yaml: [[[`
@@ -119,10 +116,8 @@ func TestWatcher_InvalidYAMLDoesNotCorruptStore(t *testing.T) {
 		t.Fatalf("failed to write bad config: %v", err)
 	}
 
-	// Wait for a couple poll cycles.
 	time.Sleep(300 * time.Millisecond)
 
-	// Store should still hold the original valid config.
 	loaded := store.Load()
 	if loaded == nil {
 		t.Fatal("store config should not be nil")

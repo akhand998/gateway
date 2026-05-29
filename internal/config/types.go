@@ -13,3 +13,8 @@ type TenantConfig struct {
 	BreakerFails int      `yaml:"breaker_max_failures"`
 	BreakerOpen  int      `yaml:"breaker_open_seconds"`
 }
+
+type RateConfig struct {
+	RatePerSecond float64
+	Burst         int
+}

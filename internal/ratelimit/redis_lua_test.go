@@ -8,7 +8,6 @@ import (
 	"github.com/redis/go-redis/v9"
 )
 
-// skipIfNoRedis skips the test if Redis is not available at the configured address.
 func skipIfNoRedis(t *testing.T, client *redis.Client) {
 	t.Helper()
 	if err := client.Ping(context.Background()).Err(); err != nil {
@@ -28,7 +27,6 @@ func TestRedisLimiterValidation(t *testing.T) {
 	client := redis.NewClient(&redis.Options{Addr: redisAddr()})
 	limiter := NewRedisLimiter(client)
 
-	// These tests only check input validation — no Redis needed.
 	if _, err := limiter.Allow(context.Background(), "", 1, 1); err == nil {
 		t.Fatalf("expected error for empty tenant id")
 	}
@@ -50,10 +48,8 @@ func TestRedisLimiterTokenBucket(t *testing.T) {
 	ctx := context.Background()
 	tenantID := "test-bucket-" + t.Name()
 
-	// Clean up any existing state.
 	client.Del(ctx, "ratelimit:"+tenantID)
 
-	// burst=3, rate=1/s — first 3 requests should pass.
 	for i := 0; i < 3; i++ {
 		allowed, err := limiter.Allow(ctx, tenantID, 1, 3)
 		if err != nil {
@@ -64,7 +60,6 @@ func TestRedisLimiterTokenBucket(t *testing.T) {
 		}
 	}
 
-	// 4th request should be denied (bucket empty).
 	allowed, err := limiter.Allow(ctx, tenantID, 1, 3)
 	if err != nil {
 		t.Fatalf("unexpected error: %v", err)
@@ -73,6 +68,5 @@ func TestRedisLimiterTokenBucket(t *testing.T) {
 		t.Fatal("expected denied after burst exhausted")
 	}
 
-	// Clean up.
 	client.Del(ctx, "ratelimit:"+tenantID)
 }

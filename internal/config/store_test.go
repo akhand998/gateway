@@ -30,7 +30,6 @@ func TestStore_LoadAfterStore(t *testing.T) {
 		t.Fatalf("unexpected config: %+v", loaded)
 	}
 
-	// Store a new config.
 	updated := &GatewayConfig{
 		Tenants: []TenantConfig{
 			{ID: "t1", Upstreams: []string{"http://localhost:9001"}, RatePerSec: 10, Burst: 20},
@@ -63,7 +62,6 @@ func TestStore_StoreNilRejected(t *testing.T) {
 		t.Fatal("expected error when storing nil config")
 	}
 
-	// Original config should still be intact.
 	loaded := store.Load()
 	if loaded == nil || len(loaded.Tenants) != 1 {
 		t.Fatal("store should not have been corrupted by nil store attempt")
